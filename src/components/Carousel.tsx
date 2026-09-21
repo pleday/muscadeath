@@ -38,7 +38,13 @@ export function Carousel({ items }: CarouselProps) {
             className="w-28 shrink-0 snap-start overflow-hidden rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] sm:w-36"
           >
             <div className="aspect-[4/5] overflow-hidden">
-              <ClickableImage src={item.image} alt={item.alt} className="h-full w-full object-cover" />
+              <ClickableImage
+                src={item.image}
+                alt={item.alt}
+                className="h-full w-full object-cover"
+                gallery={items.map((i) => ({ src: i.image, alt: i.alt }))}
+                index={index}
+              />
             </div>
             {item.caption && (
               <p className="px-2 py-1.5 text-center text-xs font-semibold tracking-wide text-[var(--color-text)]">

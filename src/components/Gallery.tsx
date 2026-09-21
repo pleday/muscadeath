@@ -22,6 +22,8 @@ export function Gallery() {
                 alt={image.alt}
                 loading="lazy"
                 className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                gallery={gallery.images.map((i) => ({ src: i.src, alt: i.alt }))}
+                index={index}
               />
             </div>
           ))}
