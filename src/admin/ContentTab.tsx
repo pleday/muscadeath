@@ -1,5 +1,6 @@
 import { useSiteConfig } from '../context/useSiteConfig'
 import { BackgroundTypeField, Field } from './fields'
+import { PlacesField } from './PlacesField'
 
 /** Editable fields for the most frequently changed text content. */
 export function ContentTab() {
@@ -230,10 +231,10 @@ export function ContentTab() {
             onChange={(value) => updateConfig({ infos: { schedule: value } })}
           />
         </div>
-        <Field
+        <PlacesField
           label="Adresse"
           value={config.infos.address}
-          onChange={(value) => updateConfig({ infos: { address: value } })}
+          onChange={(address, location) => updateConfig({ infos: { address, location } })}
         />
       </section>
 
@@ -251,10 +252,10 @@ export function ContentTab() {
             onChange={(value) => updateConfig({ contact: { email: value } })}
           />
         </div>
-        <Field
+        <PlacesField
           label="Adresse"
           value={config.contact.address}
-          onChange={(value) => updateConfig({ contact: { address: value } })}
+          onChange={(address) => updateConfig({ contact: { address } })}
         />
       </section>
 

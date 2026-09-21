@@ -1,6 +1,17 @@
 import { useSiteConfig } from '../context/useSiteConfig'
+import { GOOGLE_MAPS_API_KEY, isGoogleMapsConfigured } from '../lib/googleMaps'
 import { ClockIcon, PinIcon } from './icons'
 import { SectionTitle } from './SectionTitle'
+
+function getMapEmbedUrl(address: string, location: { lat: number; lng: number } | null) {
+  if (isGoogleMapsConfigured) {
+    // Official Maps Embed API: precise coordinates when available, else the address text.
+    const query = location ? `${location.lat},${location.lng}` : address
+    return `https://www.google.com/maps/embed/v1/place?key=${GOOGLE_MAPS_API_KEY}&q=${encodeURIComponent(query)}`
+  }
+  // Keyless fallback embed.
+  return `https://www.google.com/maps?q=${encodeURIComponent(address)}&output=embed`
+}
 
 export function InfosPratiques() {
   const { config } = useSiteConfig()
@@ -71,7 +82,7 @@ export function InfosPratiques() {
           <div className="overflow-hidden rounded-xl border border-[var(--color-border)]">
             <iframe
               title="Localisation du festival"
-              src={infos.mapEmbedUrl}
+              src={getMapEmbedUrl(infos.address, infos.location)}
               className="h-full min-h-[400px] w-full"
               loading="lazy"
               referrerPolicy="no-referrer-when-downgrade"

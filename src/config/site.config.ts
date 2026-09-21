@@ -230,6 +230,9 @@ export const siteConfig = {
     kicker: 'Billetterie, dates, lieu et à savoir',
     dates: 'Rendez-vous en 2027',
     address: '6 rue de l’Ormoie, 44330 Vallet, France',
+    // Set automatically when the address is picked from Google Places
+    // suggestions in the admin; used for a precise map instead of a text search.
+    location: null as { lat: number; lng: number } | null,
     schedule: 'Ouverture des portes le vendredi 18h - Fermeture du site le dimanche midi',
     prices: [
       { label: 'Pass 2 jours', price: '35 €', description: 'Accès complet vendredi et samedi' },
@@ -247,8 +250,6 @@ export const siteConfig = {
       "Entrées et sorties libres pendant toute la durée du festival pour les détenteurs d'un pass.",
       "Bar associatif sur place, paiement par carte et espèces accepté.",
     ],
-    mapEmbedUrl:
-      'https://www.google.com/maps?q=6+rue+de+l%27Ormoie+44330+Vallet&output=embed',
   },
 
   merch: {

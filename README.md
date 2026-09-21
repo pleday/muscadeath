@@ -129,6 +129,28 @@ connecter à `/admin`.
 Si `VITE_SUPABASE_URL` / `VITE_SUPABASE_ANON_KEY` ne sont pas définies, le
 site fonctionne normalement en mode local (voir section précédente).
 
+## Adresses sécurisées (Google Maps)
+
+Par défaut, les champs « Adresse » (Infos pratiques, Contact) sont du texte
+libre. Pour garantir que l'adresse saisie corresponde à un vrai lieu
+géolocalisable (et afficher une carte précise), activez l'autocomplétion
+Google Maps :
+
+1. Créez un projet sur [Google Cloud Console](https://console.cloud.google.com/)
+   (facturation à activer, quota gratuit mensuel généreux).
+2. Activez les API **Places API** et **Maps Embed API**.
+3. Créez une clé API (*APIs & Services > Identifiants*) et restreignez-la
+   aux domaines de votre site (HTTP referrers) pour éviter tout usage abusif.
+4. Ajoutez `VITE_GOOGLE_MAPS_API_KEY` dans `.env.local` (et dans les
+   variables d'environnement de votre hébergeur pour la production).
+5. Rebuild & déployez.
+
+Une fois configurée, les champs adresse de l'admin proposent des suggestions
+Google Maps ; sélectionner une suggestion enregistre l'adresse formatée et
+ses coordonnées, utilisées pour afficher une carte précise (API Maps Embed
+officielle) au lieu de la recherche textuelle par défaut. Sans clé, les
+champs restent du texte libre et la carte utilise l'ancien embed sans clé.
+
 ## Boutique en ligne (paiement par carte, Stripe)
 
 La section « Boutique » permet un vrai paiement en ligne (panier, carte
