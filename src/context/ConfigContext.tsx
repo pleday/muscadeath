@@ -99,6 +99,20 @@ export function ConfigProvider({ children }: { children: ReactNode }) {
     root.style.setProperty('--color-border', themeColors.border)
   }, [themeColors])
 
+  // Keep the browser tab favicon in sync with the hero logo/badge image.
+  useEffect(() => {
+    const href = config.hero.logoImage
+    if (!href) return
+    let link = document.querySelector<HTMLLinkElement>("link[rel~='icon']")
+    if (!link) {
+      link = document.createElement('link')
+      link.rel = 'icon'
+      document.head.appendChild(link)
+    }
+    link.type = href.startsWith('data:') ? href.slice(5, href.indexOf(';')) : 'image/svg+xml'
+    link.href = href
+  }, [config.hero.logoImage])
+
   const updateConfig = (patch: Record<string, unknown>) => {
     setConfig((prev) => {
       const next = deepMerge(prev, patch)
