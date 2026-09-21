@@ -138,7 +138,9 @@ Google Maps :
 
 1. Créez un projet sur [Google Cloud Console](https://console.cloud.google.com/)
    (facturation à activer, quota gratuit mensuel généreux).
-2. Activez les API **Places API** et **Maps Embed API**.
+2. Activez les API **Maps JavaScript API**, **Places API** et **Maps Embed API**
+   (l'autocomplétion d'adresse charge la bibliothèque Places via la Maps
+   JavaScript API, les trois sont nécessaires).
 3. Créez une clé API (*APIs & Services > Identifiants*) et restreignez-la
    aux domaines de votre site (HTTP referrers) pour éviter tout usage abusif.
 4. Ajoutez `VITE_GOOGLE_MAPS_API_KEY` dans `.env.local` (et dans les
