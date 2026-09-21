@@ -1,6 +1,6 @@
 import type { PartnerItem } from '../config/site.config'
 import { useSiteConfig } from '../context/useSiteConfig'
-import { readFileAsDataUrl } from '../lib/file'
+import { readImageFileForUpload } from '../lib/file'
 import { Field } from './fields'
 
 const emptyPartner: PartnerItem = { name: 'Nouveau partenaire', logo: '/images/partner-placeholder.svg', url: '' }
@@ -34,7 +34,7 @@ export function PartnersTab() {
   }
 
   const handleLogoUpload = async (index: number, file: File) => {
-    const dataUrl = await readFileAsDataUrl(file)
+    const dataUrl = await readImageFileForUpload(file)
     updateItem(index, { logo: dataUrl })
   }
 

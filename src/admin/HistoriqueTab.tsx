@@ -1,6 +1,6 @@
 import type { FeteMusiquePoster, PosterItem } from '../config/site.config'
 import { useSiteConfig } from '../context/useSiteConfig'
-import { readFileAsDataUrl } from '../lib/file'
+import { readImageFileForUpload } from '../lib/file'
 import { Field } from './fields'
 
 interface PosterEditorProps<T extends { image: string }> {
@@ -41,7 +41,7 @@ function PosterEditor<T extends { image: string }>({
   }
 
   const handleImageUpload = async (index: number, file: File) => {
-    const dataUrl = await readFileAsDataUrl(file)
+    const dataUrl = await readImageFileForUpload(file)
     updatePoster(index, { image: dataUrl } as Partial<T>)
   }
 

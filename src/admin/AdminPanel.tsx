@@ -35,7 +35,7 @@ interface AdminPanelProps {
 }
 
 export function AdminPanel({ onLogout }: AdminPanelProps) {
-  const { resetAll, exportJson, publish, cloudStatus } = useSiteConfig()
+  const { resetAll, exportJson, publish, cloudStatus, storageWarning } = useSiteConfig()
   const [activeTab, setActiveTab] = useState<TabId>('content')
   const [publishState, setPublishState] = useState<'idle' | 'publishing' | 'done' | 'error'>('idle')
   const [publishError, setPublishError] = useState('')
@@ -138,6 +138,9 @@ export function AdminPanel({ onLogout }: AdminPanelProps) {
             Impossible de récupérer le contenu publié depuis Supabase. Vérifiez la configuration
             (voir supabase/schema.sql et le README).
           </p>
+        )}
+        {storageWarning && (
+          <p className="mx-auto max-w-5xl px-6 pb-2 text-xs text-[var(--color-primary)]">{storageWarning}</p>
         )}
 
         <nav className="mx-auto flex max-w-5xl gap-2 px-6 pb-3">

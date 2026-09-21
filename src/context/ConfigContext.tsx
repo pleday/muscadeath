@@ -59,6 +59,19 @@ export function ConfigProvider({ children }: { children: ReactNode }) {
   const [cloudStatus, setCloudStatus] = useState<ConfigContextValue['cloudStatus']>(
     isSupabaseConfigured ? 'loading' : 'disabled',
   )
+  const [storageWarning, setStorageWarning] = useState<string | null>(null)
+
+  /** Saves to localStorage, without letting a quota overflow crash the app. */
+  const saveToLocalStorage = (key: string, value: unknown) => {
+    try {
+      window.localStorage.setItem(key, JSON.stringify(value))
+      setStorageWarning(null)
+    } catch {
+      setStorageWarning(
+        "Espace de stockage local plein : le dernier changement s'affiche dans l'aperçu mais ne sera pas conservé après un rechargement de page. Essayez une image plus légère, ou videz certains anciens visuels.",
+      )
+    }
+  }
 
   // Fetch the published content from Supabase (if configured) so every
   // visitor sees the same live content, regardless of their own browser.
@@ -116,7 +129,7 @@ export function ConfigProvider({ children }: { children: ReactNode }) {
   const updateConfig = (patch: Record<string, unknown>) => {
     setConfig((prev) => {
       const next = deepMerge(prev, patch)
-      window.localStorage.setItem(CONFIG_STORAGE_KEY, JSON.stringify(next))
+      saveToLocalStorage(CONFIG_STORAGE_KEY, next)
       return next
     })
   }
@@ -124,7 +137,7 @@ export function ConfigProvider({ children }: { children: ReactNode }) {
   const updateTheme = (patch: Partial<ThemeColors>) => {
     setThemeColors((prev) => {
       const next = { ...prev, ...patch }
-      window.localStorage.setItem(THEME_STORAGE_KEY, JSON.stringify(next))
+      saveToLocalStorage(THEME_STORAGE_KEY, next)
       return next
     })
   }
@@ -133,7 +146,7 @@ export function ConfigProvider({ children }: { children: ReactNode }) {
     const preset = themePresets[name]
     if (!preset) return
     setThemeColors(preset)
-    window.localStorage.setItem(THEME_STORAGE_KEY, JSON.stringify(preset))
+    saveToLocalStorage(THEME_STORAGE_KEY, preset)
   }
 
   const resetAll = () => {
@@ -172,8 +185,9 @@ export function ConfigProvider({ children }: { children: ReactNode }) {
       exportJson,
       cloudStatus,
       publish,
+      storageWarning,
     }),
-    [config, themeColors, cloudStatus],
+    [config, themeColors, cloudStatus, storageWarning],
   )
 
   return <ConfigContext.Provider value={value}>{children}</ConfigContext.Provider>

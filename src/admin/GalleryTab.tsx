@@ -1,6 +1,6 @@
 import type { GalleryImage } from '../config/site.config'
 import { useSiteConfig } from '../context/useSiteConfig'
-import { readFileAsDataUrl } from '../lib/file'
+import { readImageFileForUpload } from '../lib/file'
 import { Field } from './fields'
 
 const emptyImage: GalleryImage = { src: '/images/gallery-1.svg', alt: 'Nouvelle photo' }
@@ -34,7 +34,7 @@ export function GalleryTab() {
   }
 
   const handleImageUpload = async (index: number, file: File) => {
-    const dataUrl = await readFileAsDataUrl(file)
+    const dataUrl = await readImageFileForUpload(file)
     updateImage(index, { src: dataUrl })
   }
 

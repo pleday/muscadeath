@@ -1,6 +1,6 @@
 import type { MerchItem } from '../config/site.config'
 import { useSiteConfig } from '../context/useSiteConfig'
-import { readFileAsDataUrl } from '../lib/file'
+import { readImageFileForUpload } from '../lib/file'
 import { Field } from './fields'
 
 function slugify(text: string) {
@@ -56,7 +56,7 @@ export function MerchTab() {
   }
 
   const handleImageUpload = async (index: number, file: File) => {
-    const dataUrl = await readFileAsDataUrl(file)
+    const dataUrl = await readImageFileForUpload(file)
     updateItem(index, { image: dataUrl })
   }
 

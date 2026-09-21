@@ -1,6 +1,6 @@
 import { useState, type ChangeEvent } from 'react'
 import { useSiteConfig } from '../context/useSiteConfig'
-import { readFileAsDataUrl } from '../lib/file'
+import { readImageFileForUpload } from '../lib/file'
 
 interface FixedImageSlot {
   key: string
@@ -43,7 +43,7 @@ export function MediaLibraryTab() {
     const file = event.target.files?.[0]
     if (!file) return
     setUploadingKey(slot.key)
-    const dataUrl = await readFileAsDataUrl(file)
+    const dataUrl = await readImageFileForUpload(file)
     updateConfig(slot.patch(dataUrl))
     setUploadingKey(null)
   }

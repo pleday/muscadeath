@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import type { Artist, LineupYear } from '../config/site.config'
 import { useSiteConfig } from '../context/useSiteConfig'
-import { readFileAsDataUrl } from '../lib/file'
+import { readImageFileForUpload } from '../lib/file'
 import { Field } from './fields'
 
 const emptyArtist: Artist = {
@@ -66,7 +66,7 @@ export function LineupTab() {
   }
 
   const handleImageUpload = async (index: number, file: File) => {
-    const dataUrl = await readFileAsDataUrl(file)
+    const dataUrl = await readImageFileForUpload(file)
     updateArtist(index, { image: dataUrl })
   }
 

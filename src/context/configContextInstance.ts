@@ -14,6 +14,8 @@ export interface ConfigContextValue {
   cloudStatus: 'disabled' | 'loading' | 'synced' | 'error'
   /** Publishes the current config + theme to Supabase so every visitor sees it. */
   publish: () => Promise<{ ok: boolean; error?: string }>
+  /** Set when the local browser storage is full (e.g. after a large image upload). */
+  storageWarning: string | null
 }
 
 // Kept in its own file (no components here) so Vite Fast Refresh works reliably.
