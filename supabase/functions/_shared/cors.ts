@@ -1,0 +1,6 @@
+// Shared CORS headers for the Supabase Edge Functions called directly from the browser.
+export const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+}

@@ -1,0 +1,46 @@
+@import 'tailwindcss';
+
+/*
+ * Default color values. These are overwritten at runtime from
+ * src/config/theme.ts (see src/main.tsx), so you normally don't need to
+ * edit this block directly -- change src/config/theme.ts instead.
+ */
+:root {
+  --color-background: #0a0a0b;
+  --color-background-alt: #121213;
+  --color-surface: #19181a;
+  --color-primary: #b8101c;
+  --color-primary-dark: #7a0a12;
+  --color-secondary: #9a9a9c;
+  --color-text: #f2f1f0;
+  --color-text-muted: #9c9a9d;
+  --color-border: #2a292b;
+
+  --font-body: 'Segoe UI', system-ui, Roboto, sans-serif;
+  --font-display: 'Cinzel', 'Segoe UI', system-ui, serif;
+  --font-logo: 'Metal Mania', 'Cinzel', serif;
+
+  color-scheme: dark;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  background: var(--color-background);
+  color: var(--color-text);
+  font-family: var(--font-body);
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--font-display);
+}
+

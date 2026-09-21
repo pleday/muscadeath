@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 560" width="400" height="560">
+  <rect width="400" height="560" fill="#121213" />
+  <rect x="16" y="16" width="368" height="528" fill="none" stroke="#2a292b" stroke-width="2" />
+  <circle cx="200" cy="220" r="120" fill="none" stroke="#9a9a9c" stroke-width="6" opacity="0.5" />
+  <circle cx="200" cy="220" r="95" fill="none" stroke="#b8101c" stroke-width="2" opacity="0.7" />
+  <g transform="translate(200 205)" fill="#c9c9cb">
+    <ellipse cx="0" cy="-25" rx="72" ry="68" />
+    <path d="M-51 20 Q0 65 51 20 L40 82 L22 68 L9 88 L-9 88 L-22 68 L-40 82 Z" />
+    <circle cx="-27" cy="-20" r="16" fill="#b8101c" />
+    <circle cx="27" cy="-20" r="16" fill="#b8101c" />
+  </g>
+  <rect x="60" y="400" width="280" height="4" fill="#9a9a9c" opacity="0.5" />
+  <text x="200" y="460" font-family="sans-serif" font-size="22" fill="#9c9a9d" text-anchor="middle">
+    Affiche à remplacer
+  </text>
+</svg>

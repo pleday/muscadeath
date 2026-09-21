@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" width="800" height="600">
+  <defs>
+    <linearGradient id="g1" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0a0a0b" />
+      <stop offset="100%" stop-color="#19181a" />
+    </linearGradient>
+  </defs>
+  <rect width="800" height="600" fill="url(#g1)" />
+  <g opacity="0.5" fill="none" stroke="#b8101c" stroke-width="3">
+    <circle cx="150" cy="200" r="60" />
+  </g>
+  <g fill="#b8101c" opacity="0.85">
+    <polygon points="400,120 430,220 340,220" />
+  </g>
+  <text x="400" y="560" font-family="sans-serif" font-size="22" fill="#9c9a9d" text-anchor="middle">Photo placeholder 1</text>
+</svg>
