@@ -4,8 +4,9 @@
 // trigger an actual Stripe refund.
 //
 // Deploy with: supabase functions deploy refund-order --no-verify-jwt
-// Required secrets: STRIPE_SECRET_KEY, SUPABASE_URL, SUPABASE_ANON_KEY,
-// SUPABASE_SERVICE_ROLE_KEY (see README.md).
+// Required secret: STRIPE_SECRET_KEY (see README.md). SUPABASE_URL,
+// SUPABASE_ANON_KEY and SUPABASE_SERVICE_ROLE_KEY are auto-injected by
+// Supabase into every Edge Function, no need to set them manually.
 import { createClient } from 'npm:@supabase/supabase-js@2'
 import Stripe from 'npm:stripe@17'
 import { corsHeaders } from '../_shared/cors.ts'

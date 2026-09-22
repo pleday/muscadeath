@@ -3,8 +3,8 @@
 // tab can read them, then emails the customer a summary.
 //
 // Deploy with: supabase functions deploy stripe-webhook --no-verify-jwt
-// Required secrets: STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET,
-// SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY (see README.md).
+// Required secrets: STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET (see README.md).
+// SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY are auto-injected by Supabase.
 // Configure the webhook endpoint URL in the Stripe dashboard to point here,
 // listening to the "checkout.session.completed" event.
 import { createClient } from 'npm:@supabase/supabase-js@2'

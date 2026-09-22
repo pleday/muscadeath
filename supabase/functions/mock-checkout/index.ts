@@ -3,7 +3,8 @@
 // email) can be tested end-to-end before Stripe is fully wired/verified.
 //
 // Deploy with: supabase functions deploy mock-checkout --no-verify-jwt
-// Required secrets: SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY (see README.md).
+// No secrets required beyond what Supabase auto-injects (SUPABASE_URL,
+// SUPABASE_SERVICE_ROLE_KEY). See README.md for the optional RESEND_API_KEY.
 import { createClient } from 'npm:@supabase/supabase-js@2'
 import { corsHeaders } from '../_shared/cors.ts'
 import { sendOrderConfirmationEmail } from '../_shared/email.ts'
