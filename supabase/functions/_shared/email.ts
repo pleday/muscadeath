@@ -67,6 +67,12 @@ async function fetchBranding(): Promise<Branding> {
       // it, skip the logo rather than send a broken image in the email.
       logoUrl = siteUrl ? `${siteUrl}${logoUrl}` : null
     }
+    if (!logoUrl?.startsWith('http')) {
+      // Reject data: URIs (uploaded logos): most inboxes (Gmail included)
+      // strip inline base64 images, and they can bloat the email past
+      // Gmail's ~102KB clipping threshold, breaking the whole layout.
+      logoUrl = null
+    }
 
     return {
       siteName: config?.meta?.siteName ?? FALLBACK_BRANDING.siteName,
