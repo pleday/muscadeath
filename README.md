@@ -272,6 +272,15 @@ enregistrée) : ce n'est pas bloquant.
 3. Aucun redéploiement du frontend n'est nécessaire : les fonctions lisent
    ce secret à l'exécution.
 
+L'email reprend automatiquement le thème (couleurs) et le logo actuellement
+publiés dans l'admin, sans configuration supplémentaire. Pour que le logo
+s'affiche (les emails ne peuvent pas charger une image relative), définissez
+aussi le secret `SITE_URL` (déjà utilisé pour Stripe) :
+```bash
+npx supabase secrets set SITE_URL=https://votre-domaine.fr
+```
+Sans `SITE_URL`, l'email reste correctement stylé mais sans le logo.
+
 ## Structure du projet
 
 ```
