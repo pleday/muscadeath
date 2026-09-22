@@ -1,4 +1,5 @@
 import { About } from './components/About'
+import { BackToTopButton } from './components/BackToTopButton'
 import { CartDrawer } from './components/CartDrawer'
 import { Contact } from './components/Contact'
 import { FeteMusique } from './components/FeteMusique'
@@ -35,6 +36,7 @@ export function Site() {
       </main>
       <Footer />
       <CartDrawer />
+      <BackToTopButton />
     </LightboxProvider>
   )
 }
