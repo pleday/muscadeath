@@ -40,8 +40,10 @@ export function SalesTab() {
   const [orders, setOrders] = useState<Order[] | null>(null)
   const [error, setError] = useState('')
   const [busyId, setBusyId] = useState<string | null>(null)
+  const [isBulkBusy, setIsBulkBusy] = useState(false)
   const [actionError, setActionError] = useState('')
   const [isRefreshing, setIsRefreshing] = useState(false)
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
 
   const loadOrders = async () => {
     if (!supabase) return
@@ -123,6 +125,61 @@ export function SalesTab() {
     setBusyId(null)
   }
 
+  const toggleSelected = (orderId: string) => {
+    setSelectedIds((current) => {
+      const next = new Set(current)
+      if (next.has(orderId)) next.delete(orderId)
+      else next.add(orderId)
+      return next
+    })
+  }
+
+  const toggleSelectAll = () => {
+    setSelectedIds((current) => (current.size === orders.length ? new Set() : new Set(orders.map((o) => o.id))))
+  }
+
+  const bulkSetStatus = async (status: OrderStatus) => {
+    if (!supabase) return
+    const ids = orders.filter((o) => selectedIds.has(o.id) && o.status !== status && o.status !== 'refunded').map((o) => o.id)
+    if (ids.length === 0) return
+    setIsBulkBusy(true)
+    setActionError('')
+    const { error: updateError } = await supabase.from('orders').update({ status }).in('id', ids)
+    if (updateError) {
+      setActionError(updateError.message)
+    } else {
+      setOrders((current) => (current ?? []).map((o) => (ids.includes(o.id) ? { ...o, status } : o)))
+      setSelectedIds(new Set())
+    }
+    setIsBulkBusy(false)
+  }
+
+  const bulkRefund = async () => {
+    const ids = orders.filter((o) => selectedIds.has(o.id) && o.status !== 'refunded').map((o) => o.id)
+    if (ids.length === 0) return
+    if (!window.confirm(`Confirmer le remboursement de ${ids.length} commande(s) ?`)) return
+    setIsBulkBusy(true)
+    setActionError('')
+    const errors: string[] = []
+    for (const id of ids) {
+      const result = await refundOrder(id)
+      if (result.error) {
+        errors.push(result.error)
+      } else {
+        setOrders((current) => (current ?? []).map((o) => (o.id === id ? { ...o, status: 'refunded' } : o)))
+        setSelectedIds((current) => {
+          const next = new Set(current)
+          next.delete(id)
+          return next
+        })
+      }
+    }
+    if (errors.length > 0) setActionError(errors.join(' · '))
+    setIsBulkBusy(false)
+  }
+
+  const isBusy = busyId !== null || isBulkBusy
+
   return (
     <div className="space-y-8">
       <div className="flex items-center justify-between">
@@ -176,9 +233,50 @@ export function SalesTab() {
       )}
 
       <div>
-        <h3 className="mb-3 text-sm font-bold tracking-wide text-[var(--color-primary)] uppercase">
-          Précommandes
-        </h3>
+        <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+          <h3 className="text-sm font-bold tracking-wide text-[var(--color-primary)] uppercase">Précommandes</h3>
+          {orders.length > 0 && (
+            <label className="flex items-center gap-2 text-xs text-[var(--color-text-muted)]">
+              <input
+                type="checkbox"
+                checked={selectedIds.size > 0 && selectedIds.size === orders.length}
+                onChange={toggleSelectAll}
+              />
+              Tout sélectionner
+            </label>
+          )}
+        </div>
+        {selectedIds.size > 0 && (
+          <div className="mb-3 flex flex-wrap items-center gap-2 rounded-md border border-[var(--color-border)] bg-[var(--color-background)] p-3">
+            <span className="text-xs font-semibold text-[var(--color-text)]">
+              {selectedIds.size} sélectionnée(s)
+            </span>
+            <button
+              type="button"
+              disabled={isBusy}
+              onClick={() => bulkSetStatus('processed')}
+              className="rounded-md border border-[var(--color-border)] px-3 py-1.5 text-xs font-semibold text-[var(--color-text)] transition-colors hover:border-[var(--color-primary)] disabled:opacity-50"
+            >
+              Marquer traitées
+            </button>
+            <button
+              type="button"
+              disabled={isBusy}
+              onClick={() => bulkSetStatus('pending')}
+              className="rounded-md border border-[var(--color-border)] px-3 py-1.5 text-xs font-semibold text-[var(--color-text)] transition-colors hover:border-[var(--color-primary)] disabled:opacity-50"
+            >
+              Remettre à traiter
+            </button>
+            <button
+              type="button"
+              disabled={isBusy}
+              onClick={bulkRefund}
+              className="rounded-md bg-[var(--color-primary)] px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-[var(--color-primary-dark)] disabled:opacity-50"
+            >
+              Rembourser
+            </button>
+          </div>
+        )}
         {actionError && <p className="mb-3 text-sm text-[var(--color-primary)]">Erreur : {actionError}</p>}
         {orders.length === 0 ? (
           <p className="text-sm text-[var(--color-text-muted)]">Aucune commande pour le moment.</p>
@@ -190,14 +288,22 @@ export function SalesTab() {
                 className="rounded-md border border-[var(--color-border)] bg-[var(--color-background)] p-4"
               >
                 <div className="flex flex-wrap items-center justify-between gap-2">
-                  <div>
-                    <p className="text-sm font-semibold text-[var(--color-text)]">
-                      {order.customer_email ?? '—'}
-                    </p>
-                    <p className="text-xs text-[var(--color-text-muted)]">
-                      {new Date(order.created_at).toLocaleString('fr-FR')}
-                      {order.stripe_session_id.startsWith('mock_') && ' · commande test (sans paiement réel)'}
-                    </p>
+                  <div className="flex items-start gap-3">
+                    <input
+                      type="checkbox"
+                      checked={selectedIds.has(order.id)}
+                      onChange={() => toggleSelected(order.id)}
+                      className="mt-1"
+                    />
+                    <div>
+                      <p className="text-sm font-semibold text-[var(--color-text)]">
+                        {order.customer_email ?? '—'}
+                      </p>
+                      <p className="text-xs text-[var(--color-text-muted)]">
+                        {new Date(order.created_at).toLocaleString('fr-FR')}
+                        {order.stripe_session_id.startsWith('mock_') && ' · commande test (sans paiement réel)'}
+                      </p>
+                    </div>
                   </div>
                   <span className={`rounded-full px-3 py-1 text-xs font-semibold ${STATUS_STYLES[order.status]}`}>
                     {STATUS_LABELS[order.status]}
@@ -220,7 +326,7 @@ export function SalesTab() {
                     {order.status === 'pending' && (
                       <button
                         type="button"
-                        disabled={busyId === order.id}
+                        disabled={busyId === order.id || isBulkBusy}
                         onClick={() => setStatus(order.id, 'processed')}
                         className="rounded-md border border-[var(--color-border)] px-3 py-1.5 text-xs font-semibold text-[var(--color-text)] transition-colors hover:border-[var(--color-primary)] disabled:opacity-50"
                       >
@@ -230,7 +336,7 @@ export function SalesTab() {
                     {order.status === 'processed' && (
                       <button
                         type="button"
-                        disabled={busyId === order.id}
+                        disabled={busyId === order.id || isBulkBusy}
                         onClick={() => setStatus(order.id, 'pending')}
                         className="rounded-md border border-[var(--color-border)] px-3 py-1.5 text-xs font-semibold text-[var(--color-text)] transition-colors hover:border-[var(--color-primary)] disabled:opacity-50"
                       >
@@ -240,7 +346,7 @@ export function SalesTab() {
                     {order.status !== 'refunded' && (
                       <button
                         type="button"
-                        disabled={busyId === order.id}
+                        disabled={busyId === order.id || isBulkBusy}
                         onClick={() => handleRefund(order.id)}
                         className="rounded-md bg-[var(--color-primary)] px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-[var(--color-primary-dark)] disabled:opacity-50"
                       >
