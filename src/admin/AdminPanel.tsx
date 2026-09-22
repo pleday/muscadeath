@@ -15,20 +15,26 @@ import { StatsTab } from './StatsTab'
 import { ThemeTab } from './ThemeTab'
 
 const tabs = [
-  { id: 'content', label: 'Contenu' },
+  { id: 'content', label: 'Général' },
   { id: 'news', label: 'Actualités' },
   { id: 'lineup', label: 'Programmation' },
   { id: 'historique', label: 'Historique(s)' },
   { id: 'merch', label: 'Boutique' },
   { id: 'gallery', label: 'Galerie' },
   { id: 'partners', label: 'Partenaires' },
+  { id: 'media', label: 'Médiathèque' },
   { id: 'stats', label: 'Statistiques' },
   { id: 'theme', label: 'Couleurs' },
-  { id: 'media', label: 'Médiathèque' },
   { id: 'advanced', label: 'Avancé' },
 ] as const
 
 type TabId = (typeof tabs)[number]['id']
+
+const tabGroups: { label: string; ids: TabId[] }[] = [
+  { label: 'Contenu', ids: ['content', 'news', 'lineup', 'historique'] },
+  { label: 'Boutique & médias', ids: ['merch', 'gallery', 'partners', 'media'] },
+  { label: 'Site', ids: ['stats', 'theme', 'advanced'] },
+]
 
 interface AdminPanelProps {
   onLogout: () => void
@@ -143,21 +149,31 @@ export function AdminPanel({ onLogout }: AdminPanelProps) {
           <p className="mx-auto max-w-5xl px-6 pb-2 text-xs text-[var(--color-primary)]">{storageWarning}</p>
         )}
 
-        <nav className="mx-auto flex max-w-5xl gap-2 overflow-x-auto px-6 pb-3">
-          {tabs.map((tab) => (
-            <button
-              key={tab.id}
-              type="button"
-              onClick={() => setActiveTab(tab.id)}
-              className={
-                'shrink-0 rounded-full px-4 py-1.5 text-sm font-semibold whitespace-nowrap transition-colors ' +
-                (activeTab === tab.id
-                  ? 'bg-[var(--color-primary)] text-white'
-                  : 'bg-[var(--color-background)] text-[var(--color-text-muted)] hover:text-[var(--color-text)]')
-              }
-            >
-              {tab.label}
-            </button>
+        <nav className="mx-auto flex max-w-5xl flex-wrap gap-x-5 gap-y-2 px-6 pb-3">
+          {tabGroups.map((group) => (
+            <div key={group.label} className="flex flex-wrap items-center gap-1.5">
+              <span className="mr-0.5 text-[10px] font-semibold tracking-wide text-[var(--color-text-muted)] uppercase opacity-70">
+                {group.label}
+              </span>
+              {group.ids.map((id) => {
+                const tab = tabs.find((candidate) => candidate.id === id)!
+                return (
+                  <button
+                    key={tab.id}
+                    type="button"
+                    onClick={() => setActiveTab(tab.id)}
+                    className={
+                      'rounded-full px-3.5 py-1.5 text-sm font-semibold whitespace-nowrap transition-colors ' +
+                      (activeTab === tab.id
+                        ? 'bg-[var(--color-primary)] text-white'
+                        : 'bg-[var(--color-background)] text-[var(--color-text-muted)] hover:text-[var(--color-text)]')
+                    }
+                  >
+                    {tab.label}
+                  </button>
+                )
+              })}
+            </div>
           ))}
         </nav>
       </header>
