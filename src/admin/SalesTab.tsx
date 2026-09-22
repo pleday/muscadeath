@@ -41,20 +41,27 @@ export function SalesTab() {
   const [error, setError] = useState('')
   const [busyId, setBusyId] = useState<string | null>(null)
   const [actionError, setActionError] = useState('')
+  const [isRefreshing, setIsRefreshing] = useState(false)
 
-  useEffect(() => {
+  const loadOrders = async () => {
     if (!supabase) return
-    supabase
+    setIsRefreshing(true)
+    const { data, error: fetchError } = await supabase
       .from('orders')
       .select('*')
       .order('created_at', { ascending: false })
-      .then(({ data, error: fetchError }) => {
-        if (fetchError) {
-          setError(fetchError.message)
-          return
-        }
-        setOrders((data ?? []) as Order[])
-      })
+    if (fetchError) {
+      setError(fetchError.message)
+    } else {
+      setError('')
+      setOrders((data ?? []) as Order[])
+    }
+    setIsRefreshing(false)
+  }
+
+  useEffect(() => {
+    loadOrders()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   if (!supabase) {
@@ -77,7 +84,16 @@ export function SalesTab() {
   const totalRevenue = paidOrders.reduce((sum, order) => sum + order.amount_total, 0) / 100
   const orderCount = paidOrders.length
   const averageBasket = orderCount > 0 ? totalRevenue / orderCount : 0
-  const pendingCount = orders.filter((order) => order.status === 'pending').length
+  const pendingOrders = orders.filter((order) => order.status === 'pending')
+  const pendingCount = pendingOrders.length
+
+  const itemsToPrepare = new Map<string, number>()
+  for (const order of pendingOrders) {
+    for (const item of order.items ?? []) {
+      itemsToPrepare.set(item.description, (itemsToPrepare.get(item.description) ?? 0) + item.quantity)
+    }
+  }
+  const itemsToPrepareList = [...itemsToPrepare.entries()].sort((a, b) => b[1] - a[1])
 
   const setStatus = async (orderId: string, status: OrderStatus) => {
     if (!supabase) return
@@ -109,6 +125,18 @@ export function SalesTab() {
 
   return (
     <div className="space-y-8">
+      <div className="flex items-center justify-between">
+        <h3 className="text-sm font-bold tracking-wide text-[var(--color-primary)] uppercase">Vue d'ensemble</h3>
+        <button
+          type="button"
+          onClick={loadOrders}
+          disabled={isRefreshing}
+          className="rounded-md border border-[var(--color-border)] px-3 py-1.5 text-xs font-semibold text-[var(--color-text)] transition-colors hover:border-[var(--color-primary)] disabled:opacity-50"
+        >
+          {isRefreshing ? 'Actualisation…' : '↻ Rafraîchir'}
+        </button>
+      </div>
+
       <div className="grid gap-4 sm:grid-cols-4">
         <div className="rounded-lg border border-[var(--color-border)] bg-[var(--color-background)] p-5 text-center">
           <p className="text-2xl font-extrabold text-[var(--color-primary)]">{totalRevenue.toFixed(2)} €</p>
@@ -127,6 +155,25 @@ export function SalesTab() {
           <p className="mt-1 text-xs text-[var(--color-text-muted)]">À traiter</p>
         </div>
       </div>
+
+      {itemsToPrepareList.length > 0 && (
+        <div>
+          <h3 className="mb-3 text-sm font-bold tracking-wide text-[var(--color-primary)] uppercase">
+            Articles à préparer (commandes à traiter)
+          </h3>
+          <ul className="space-y-2">
+            {itemsToPrepareList.map(([name, quantity]) => (
+              <li
+                key={name}
+                className="flex items-center justify-between rounded-md border border-[var(--color-border)] bg-[var(--color-background)] px-4 py-2 text-sm"
+              >
+                <span className="text-[var(--color-text)]">{name}</span>
+                <span className="font-semibold text-amber-500">{quantity}×</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       <div>
         <h3 className="mb-3 text-sm font-bold tracking-wide text-[var(--color-primary)] uppercase">
