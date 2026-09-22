@@ -149,10 +149,10 @@ export function AdminPanel({ onLogout }: AdminPanelProps) {
           <p className="mx-auto max-w-5xl px-6 pb-2 text-xs text-[var(--color-primary)]">{storageWarning}</p>
         )}
 
-        <nav className="mx-auto flex max-w-5xl flex-wrap gap-x-5 gap-y-2 px-6 pb-3">
+        <nav className="mx-auto flex max-w-5xl flex-col gap-1.5 px-6 pb-3">
           {tabGroups.map((group) => (
             <div key={group.label} className="flex flex-wrap items-center gap-1.5">
-              <span className="mr-0.5 text-[10px] font-semibold tracking-wide text-[var(--color-text-muted)] uppercase opacity-70">
+              <span className="mr-0.5 w-28 shrink-0 text-[10px] font-semibold tracking-wide text-[var(--color-text-muted)] uppercase opacity-70">
                 {group.label}
               </span>
               {group.ids.map((id) => {
