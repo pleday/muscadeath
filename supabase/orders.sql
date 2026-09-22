@@ -29,6 +29,7 @@ alter table public.orders add constraint orders_status_check check (status in ('
 alter table public.orders enable row level security;
 
 -- Only the admin (signed in) can list orders for the sales management tab.
+drop policy if exists "authenticated can read orders" on public.orders;
 create policy "authenticated can read orders"
   on public.orders
   for select
