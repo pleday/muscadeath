@@ -1,6 +1,6 @@
 // Supabase Edge Function: Stripe webhook. Verifies the signature and stores
-// completed orders in the `orders` table so the admin "Statistiques" tab can
-// read them.
+// completed orders in the `orders` table so the admin "Gestion des ventes"
+// tab can read them, then emails the customer a summary.
 //
 // Deploy with: supabase functions deploy stripe-webhook --no-verify-jwt
 // Required secrets: STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET,
@@ -9,6 +9,7 @@
 // listening to the "checkout.session.completed" event.
 import { createClient } from 'npm:@supabase/supabase-js@2'
 import Stripe from 'npm:stripe@17'
+import { sendOrderConfirmationEmail } from '../_shared/email.ts'
 
 Deno.serve(async (req) => {
   const signature = req.headers.get('stripe-signature')
@@ -38,22 +39,34 @@ Deno.serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
     )
 
+    const items = lineItems.data.map((line) => ({
+      description: line.description,
+      quantity: line.quantity,
+      amount_total: line.amount_total,
+    }))
+
     const { error } = await supabase.from('orders').insert({
       stripe_session_id: session.id,
+      payment_intent_id: typeof session.payment_intent === 'string' ? session.payment_intent : null,
       customer_email: session.customer_details?.email ?? null,
       amount_total: session.amount_total ?? 0,
       currency: session.currency ?? 'eur',
-      items: lineItems.data.map((line) => ({
-        description: line.description,
-        quantity: line.quantity,
-        amount_total: line.amount_total,
-      })),
+      items,
     })
 
     if (error && error.code !== '23505') {
       // 23505 = unique_violation on stripe_session_id: Stripe may retry the
       // same webhook event, safely ignore duplicates.
       return new Response(`Database error: ${error.message}`, { status: 500 })
+    }
+
+    if (!error && session.customer_details?.email) {
+      await sendOrderConfirmationEmail({
+        to: session.customer_details.email,
+        items,
+        amountTotalCents: session.amount_total ?? 0,
+        currency: session.currency ?? 'eur',
+      })
     }
   }
 

@@ -69,11 +69,12 @@ certaines images directement depuis le navigateur, sans toucher au code.
   `src/config/admin.ts` pour la procédure).
 - **Onglets** : Contenu (textes principaux), Actualités (ajout / édition /
   réordonnancement / suppression des actus, avec upload d'image), Boutique
-  (articles précommandés en vente), Statistiques (chiffre d'affaires,
-  commandes, meilleures ventes), Couleurs (thème + presets), Images (choix,
-  pour l'accueil et la section « À propos », entre une image uploadée ou une
-  couleur unie), Avancé (édition JSON pour la programmation, les tarifs, la
-  galerie et les réseaux sociaux).
+  (articles précommandés en vente), Gestion des ventes (liste des
+  précommandes à traiter/traitées, remboursement, chiffre d'affaires),
+  Couleurs (thème + presets), Images (choix, pour l'accueil et la section
+  « À propos », entre une image uploadée ou une couleur unie), Avancé
+  (édition JSON pour la programmation, les tarifs, la galerie et les
+  réseaux sociaux).
 
 **Important — limites de sécurité et de persistance (mode local) :**
 
@@ -174,9 +175,11 @@ frais par transaction encaissée) et le projet Supabase configuré ci-dessus
 ### 2. Installer la table des commandes
 
 Dans l'éditeur SQL Supabase, exécutez [`supabase/orders.sql`](supabase/orders.sql)
-(en plus de `schema.sql`). Il crée la table `orders`, lisible uniquement par
-votre compte admin (RLS), et écrite uniquement par la fonction du webhook
-Stripe (via la clé `service_role`, qui contourne RLS).
+(en plus de `schema.sql`). Il crée la table `orders`, lisible et modifiable
+(statut uniquement) par votre compte admin (RLS), et insérée uniquement par
+les fonctions serveur (via la clé `service_role`, qui contourne RLS). Si la
+table existait déjà (installation précédente), ce script ajoute simplement
+les colonnes `status` et `payment_intent_id` manquantes.
 
 ### 3. Déployer les fonctions serveur (Supabase Edge Functions)
 
@@ -204,11 +207,19 @@ Functions* de Supabase, qui restent compatibles avec un hébergement statique
    `SUPABASE_SERVICE_ROLE_KEY` se trouve dans *Project Settings > API*
    (clé secrète, ne jamais l'exposer côté navigateur). `STRIPE_WEBHOOK_SECRET`
    sera ajouté à l'étape 4.
-3. Déployez les deux fonctions :
+3. Déployez les fonctions :
    ```bash
    npx supabase functions deploy create-checkout-session --no-verify-jwt
    npx supabase functions deploy stripe-webhook --no-verify-jwt
+   npx supabase functions deploy mock-checkout --no-verify-jwt
+   npx supabase functions deploy refund-order --no-verify-jwt
    ```
+   `mock-checkout` crée une fausse commande « payée » sans passer par Stripe
+   (bouton « Mode test » dans le panier), utile pour tester la gestion des
+   ventes et l'email de confirmation avant que Stripe soit entièrement
+   configuré. `refund-order` déclenche le remboursement (bouton
+   « Rembourser » dans l'onglet Gestion des ventes) : instantané pour les
+   commandes test, réel via l'API Stripe pour les commandes payées.
 
 ### 4. Configurer le webhook Stripe
 
@@ -229,7 +240,9 @@ Functions* de Supabase, qui restent compatibles avec un hébergement statique
 - En mode test Stripe, utilisez une [carte de test](https://stripe.com/docs/testing)
   (ex. `4242 4242 4242 4242`, n'importe quelle date future, n'importe quel
   CVC) pour vérifier tout le tunnel : panier → paiement → page de
-  confirmation → commande visible dans l'onglet **Statistiques** de l'admin.
+  confirmation → commande visible dans l'onglet **Gestion des ventes** de
+  l'admin. Vous pouvez aussi utiliser le bouton « Mode test » du panier pour
+  créer une commande fictive sans passer par Stripe du tout.
 - Une fois satisfait, activez votre compte Stripe (informations bancaires
   de l'association) et remplacez `STRIPE_SECRET_KEY` par la clé **live**
   (`sk_live_...`), puis recréez le webhook en mode live (les webhooks test
@@ -238,6 +251,26 @@ Functions* de Supabase, qui restent compatibles avec un hébergement statique
 Si Stripe/Supabase ne sont pas configurés, les boutons du panier affichent
 un message d'erreur clair au lieu de planter, et le reste du site continue
 de fonctionner normalement.
+
+### 6. Email de confirmation de commande
+
+À la validation d'une commande (réelle via Stripe ou test via le mode
+démo), un email récapitulatif est envoyé au client via l'API
+[Resend](https://resend.com) (compte gratuit, 100 emails/jour). Sans clé
+configurée, l'envoi est simplement ignoré (la commande est quand même
+enregistrée) : ce n'est pas bloquant.
+
+1. Créez un compte sur [resend.com](https://resend.com) et récupérez une
+   clé API (*API Keys*).
+2. Ajoutez les secrets Supabase :
+   ```bash
+   npx supabase secrets set RESEND_API_KEY=re_... ORDER_FROM_EMAIL="Muscadeath <onboarding@resend.dev>"
+   ```
+   (`onboarding@resend.dev` fonctionne sans domaine vérifié pour tester ;
+   pour un envoi depuis votre propre domaine, vérifiez-le dans Resend puis
+   utilisez une adresse `@votre-domaine.fr`.)
+3. Aucun redéploiement du frontend n'est nécessaire : les fonctions lisent
+   ce secret à l'exécution.
 
 ## Structure du projet
 
@@ -253,7 +286,7 @@ src/
   context/
     ConfigContext.tsx # fusionne les valeurs par défaut, le cache local et le contenu publié sur Supabase
     CartContext.tsx    # panier de la boutique (persisté en local, partagé sur tout le site)
-  admin/               # page d'administration (login + onglets d'édition + publication + statistiques)
+  admin/               # page d'administration (login + onglets d'édition + publication + gestion des ventes)
   components/
     Header.tsx         Hero.tsx           About.tsx
     Lineup.tsx          InfosPratiques.tsx Gallery.tsx
@@ -270,6 +303,8 @@ supabase/
   orders.sql            # table des commandes de la boutique
   functions/
     create-checkout-session/ # Edge Function : crée la session de paiement Stripe
-    stripe-webhook/           # Edge Function : enregistre les commandes payées
+    stripe-webhook/           # Edge Function : enregistre les commandes payées + envoie l'email
+    mock-checkout/            # Edge Function : crée une commande test sans paiement réel
+    refund-order/             # Edge Function : rembourse une commande (admin uniquement)
 ```
 

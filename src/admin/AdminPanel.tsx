@@ -11,7 +11,7 @@ import { MediaLibraryTab } from './MediaLibraryTab'
 import { MerchTab } from './MerchTab'
 import { NewsTab } from './NewsTab'
 import { PartnersTab } from './PartnersTab'
-import { StatsTab } from './StatsTab'
+import { SalesTab } from './SalesTab'
 import { ThemeTab } from './ThemeTab'
 
 const tabs = [
@@ -23,7 +23,7 @@ const tabs = [
   { id: 'gallery', label: 'Galerie' },
   { id: 'partners', label: 'Partenaires' },
   { id: 'media', label: 'Médiathèque' },
-  { id: 'stats', label: 'Statistiques' },
+  { id: 'stats', label: 'Gestion des ventes' },
   { id: 'theme', label: 'Couleurs' },
   { id: 'advanced', label: 'Avancé' },
 ] as const
@@ -186,7 +186,7 @@ export function AdminPanel({ onLogout }: AdminPanelProps) {
         {activeTab === 'merch' && <MerchTab />}
         {activeTab === 'gallery' && <GalleryTab />}
         {activeTab === 'partners' && <PartnersTab />}
-        {activeTab === 'stats' && <StatsTab />}
+        {activeTab === 'stats' && <SalesTab />}
         {activeTab === 'theme' && <ThemeTab />}
         {activeTab === 'media' && <MediaLibraryTab />}
         {activeTab === 'advanced' && <AdvancedTab />}
