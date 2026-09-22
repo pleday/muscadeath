@@ -187,7 +187,7 @@ export function ConfigProvider({ children }: { children: ReactNode }) {
       publish,
       storageWarning,
     }),
-    [config, themeColors, cloudStatus, storageWarning],
+    [config, themeColors, cloudStatus, storageWarning, exportJson, publish],
   )
 
   return <ConfigContext.Provider value={value}>{children}</ConfigContext.Provider>

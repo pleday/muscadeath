@@ -143,14 +143,14 @@ export function AdminPanel({ onLogout }: AdminPanelProps) {
           <p className="mx-auto max-w-5xl px-6 pb-2 text-xs text-[var(--color-primary)]">{storageWarning}</p>
         )}
 
-        <nav className="mx-auto flex max-w-5xl gap-2 px-6 pb-3">
+        <nav className="mx-auto flex max-w-5xl gap-2 overflow-x-auto px-6 pb-3">
           {tabs.map((tab) => (
             <button
               key={tab.id}
               type="button"
               onClick={() => setActiveTab(tab.id)}
               className={
-                'rounded-full px-4 py-1.5 text-sm font-semibold transition-colors ' +
+                'shrink-0 rounded-full px-4 py-1.5 text-sm font-semibold whitespace-nowrap transition-colors ' +
                 (activeTab === tab.id
                   ? 'bg-[var(--color-primary)] text-white'
                   : 'bg-[var(--color-background)] text-[var(--color-text-muted)] hover:text-[var(--color-text)]')
