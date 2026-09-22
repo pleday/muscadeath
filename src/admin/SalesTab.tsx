@@ -44,6 +44,8 @@ export function SalesTab() {
   const [actionError, setActionError] = useState('')
   const [isRefreshing, setIsRefreshing] = useState(false)
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
+  const [dateFrom, setDateFrom] = useState('')
+  const [dateTo, setDateTo] = useState('')
 
   const loadOrders = async () => {
     if (!supabase) return
@@ -96,6 +98,35 @@ export function SalesTab() {
     }
   }
   const itemsToPrepareList = [...itemsToPrepare.entries()].sort((a, b) => b[1] - a[1])
+
+  const periodOrders = orders.filter((order) => {
+    const time = new Date(order.created_at).getTime()
+    if (dateFrom && time < new Date(dateFrom).getTime()) return false
+    if (dateTo && time > new Date(dateTo).getTime() + 24 * 60 * 60 * 1000 - 1) return false
+    return true
+  })
+  const periodRevenue =
+    periodOrders.filter((order) => order.status !== 'refunded').reduce((sum, order) => sum + order.amount_total, 0) /
+    100
+
+  const orderedInPeriod = new Map<string, number>()
+  const processedInPeriod = new Map<string, number>()
+  for (const order of periodOrders) {
+    if (order.status === 'refunded') continue
+    for (const item of order.items ?? []) {
+      orderedInPeriod.set(item.description, (orderedInPeriod.get(item.description) ?? 0) + item.quantity)
+      if (order.status === 'processed') {
+        processedInPeriod.set(item.description, (processedInPeriod.get(item.description) ?? 0) + item.quantity)
+      }
+    }
+  }
+  const periodBreakdown = [...new Set([...orderedInPeriod.keys(), ...processedInPeriod.keys()])]
+    .map((name) => ({
+      name,
+      ordered: orderedInPeriod.get(name) ?? 0,
+      processed: processedInPeriod.get(name) ?? 0,
+    }))
+    .sort((a, b) => b.ordered - a.ordered)
 
   const setStatus = async (orderId: string, status: OrderStatus) => {
     if (!supabase) return
@@ -231,6 +262,75 @@ export function SalesTab() {
           </ul>
         </div>
       )}
+
+      <div>
+        <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
+          <h3 className="text-sm font-bold tracking-wide text-[var(--color-primary)] uppercase">
+            Statistiques par période
+          </h3>
+          <div className="flex flex-wrap items-center gap-2 text-xs text-[var(--color-text-muted)]">
+            <label className="flex items-center gap-1.5">
+              Du
+              <input
+                type="date"
+                value={dateFrom}
+                onChange={(event) => setDateFrom(event.target.value)}
+                className="rounded-md border border-[var(--color-border)] bg-[var(--color-background)] px-2 py-1 text-[var(--color-text)] outline-none focus:border-[var(--color-primary)]"
+              />
+            </label>
+            <label className="flex items-center gap-1.5">
+              Au
+              <input
+                type="date"
+                value={dateTo}
+                onChange={(event) => setDateTo(event.target.value)}
+                className="rounded-md border border-[var(--color-border)] bg-[var(--color-background)] px-2 py-1 text-[var(--color-text)] outline-none focus:border-[var(--color-primary)]"
+              />
+            </label>
+            {(dateFrom || dateTo) && (
+              <button
+                type="button"
+                onClick={() => {
+                  setDateFrom('')
+                  setDateTo('')
+                }}
+                className="text-[var(--color-text-muted)] underline hover:text-[var(--color-primary)]"
+              >
+                Réinitialiser
+              </button>
+            )}
+          </div>
+        </div>
+
+        <p className="mb-3 text-xs text-[var(--color-text-muted)]">
+          {periodOrders.length} commande(s) sur la période · {periodRevenue.toFixed(2)} € (hors remboursées)
+        </p>
+
+        {periodBreakdown.length === 0 ? (
+          <p className="text-sm text-[var(--color-text-muted)]">Aucun article sur cette période.</p>
+        ) : (
+          <div className="overflow-x-auto rounded-md border border-[var(--color-border)]">
+            <table className="w-full text-left text-sm">
+              <thead className="bg-[var(--color-background)] text-xs text-[var(--color-text-muted)] uppercase">
+                <tr>
+                  <th className="px-4 py-2">Article</th>
+                  <th className="px-4 py-2">Commandés</th>
+                  <th className="px-4 py-2">Traités</th>
+                </tr>
+              </thead>
+              <tbody>
+                {periodBreakdown.map((row) => (
+                  <tr key={row.name} className="border-t border-[var(--color-border)]">
+                    <td className="px-4 py-2 text-[var(--color-text)]">{row.name}</td>
+                    <td className="px-4 py-2 font-semibold text-[var(--color-primary)]">{row.ordered}</td>
+                    <td className="px-4 py-2 font-semibold text-emerald-500">{row.processed}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
 
       <div>
         <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
